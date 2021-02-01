@@ -1,0 +1,313 @@
+:root {
+	--s42-spfb-text-color: #121212;
+	--s42-spfb-off-text-color: #BBBBBB;
+	--s42-spfb-link-hover-color: #CD192E;	
+	--s42-spfb-accent-color: #346EB8;
+	--s42-spfb-faded-color: rgba(52, 110, 184, 0.67);
+	--s42-spfb-button-text-color: #FFFFFF;
+	--s42-spfb-button-box-shadow: 0 1px 2px 0 #346EB8;
+	--s42-spfb-backround-color: #FFFFFF;
+	--s42-spfb-box-shadow: 0 3px 8px 2px rgba(50, 50, 50, 0.15);
+	--s42-spfb-border-radius: 8px;
+	--s42-spfb-border-color: #DDDDDD;
+	--s42-spfb-logo-url: url("https://serguun42.ru/tampermonkey/stonks-tagger/stonks_logo_light.svg");
+}
+
+.s42-stonks-popup__text-splited-left {
+	display: block;
+	float: left;
+}
+
+.s42-stonks-popup__text-splited-right {
+	display: block;
+	float: right;
+}
+
+.s42-stonks-popup__text-regular {
+	color: var(--s42-spfb-text-color);
+}
+
+.s42-stonks-popup__text-marked {
+	color: var(--s42-spfb-accent-color);
+	text-decoration: none;
+}
+
+.s42-stonks-popup__text-marked:hover,
+.s42-stonks-popup__text-marked:focus {
+	color: var(--s42-spfb-link-hover-color);
+	border: none;
+	outline: none;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.s42-stonks-popup__text-off {
+	color: var(--s42-spfb-off-text-color);
+}
+
+.s42-stonks-popup__text-green {
+	color: #00AA11;
+}
+
+.s42-stonks-popup__text-red {
+	color: #CD192E;
+}
+
+.s42-stonks-popup--flex {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	flex-wrap: nowrap;
+}
+
+.s42-stonks-popup--flex-center {
+	justify-content: center;
+}
+
+.s42-stonks-popup__support-text {
+	font-size: 15px;
+	font-weight: 400;
+	line-height: 1em;
+	white-space: nowrap;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+
+.s42-stonks-popup__big-text {
+	display: block;
+	position: relative;
+
+	margin: 8px 0 0;
+
+	font-size: 24px;
+	font-weight: 700;
+	line-height: 1em;
+	white-space: nowrap;
+}
+
+
+
+
+.s42-stonks-popup {
+	display: block;
+	position: absolute;
+
+	width: 450px;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+
+	top: 0;
+	left: 0;
+
+	border-radius: var(--s42-spfb-border-radius);
+	background-color: var(--s42-spfb-backround-color);
+	box-shadow: var(--s42-spfb-box-shadow);
+
+	font-family: "Roboto", Arial, Helvetica, sans-serif;
+	font-weight: 400;
+	font-size: 15px;
+	line-height: 1.35em;
+	color: var(--s42-spfb-text-color);
+
+	z-index: 50;
+}
+
+@media (max-width: 450px) {
+	.s42-stonks-popup {
+		width: 100%;
+		left: 0 !important;
+		border-radius: 0;
+	}
+}
+
+.s42-stonks-popup__head {
+	position: relative;
+	width: 100%;
+	height: 48px;
+
+	margin: 0;
+	padding: 12px 24px;
+	box-sizing: border-box;
+
+	font-weight: 700;
+	font-size: 24px;
+	line-height: 24px;
+	white-space: nowrap;
+
+	border-bottom: 2px solid var(--s42-spfb-border-color);
+}
+
+.s42-stonks-popup__head__growth {
+	display: inline-block;
+	margin-right: 8px;
+
+	font-size: 18px;
+	line-height: 24px;
+}
+
+/* userscript by @serguun42 
+stonks.xyz by Moskovskiy × @QQ */
+
+.s42-stonks-popup__body {
+	display: block;
+	position: relative;
+	width: 100%;
+
+	margin: 0;
+	padding: 12px 24px;
+	box-sizing: border-box;
+}
+
+.s42-stonks-popup__body__message {
+	display: block;
+	position: relative;
+	width: 100%;
+
+	margin: 0;
+	padding: 8px 0;
+	box-sizing: border-box;
+}
+
+.s42-stonks-popup__body__message .s42-stonks-popup__text-marked {
+	font-weight: 700;
+}
+
+.s42-stonks-popup__body__prices {
+	flex-wrap: wrap;
+	position: relative;
+	width: 100%;
+
+	margin: 0;
+	padding: 8px 0 0;
+	box-sizing: border-box;
+}
+
+.s42-stonks-popup__body__prices__column {
+	display: block;
+	position: relative;
+	width: calc(100% / 3 - 8px);
+	min-width: 115px;
+
+	margin: 0;
+	padding: 12px 0;
+	box-sizing: border-box;
+}
+
+.s42-stonks-popup__body__prices__column:last-of-type {
+	width: calc(100% / 3 + 4px);
+}
+
+.s42-stonks-popup__body__prices__column__row {
+	padding: 0 0 8px;
+	box-sizing: border-box;
+	
+	font-size: 15px;
+	line-height: 1em;
+}
+
+.s42-stonks-popup__body__prices__column__row:last-of-type {
+	padding: 0;
+}
+
+.s42-stonks-popup__footer {
+	position: relative;
+	width: 100%;
+
+	margin: 0;
+	padding: 12px 24px;
+	box-sizing: border-box;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+
+.s42-stonks-popup__footer__button {
+	display: block;
+	position: relative;
+	width: calc(50% - 8px);
+	height: 32px;
+
+	margin: 0;
+	padding: 8px 12px;
+	box-sizing: border-box;
+
+	font-family: "Roboto", Arial, Helvetica, sans-serif;
+	font-weight: 500;
+	font-size: 15px;
+	line-height: 16px;
+	text-align: center;
+	white-space: nowrap;
+
+	text-decoration: none;
+
+	border-radius: var(--s42-spfb-border-radius);;
+
+	color: var(--s42-spfb-button-text-color);
+	background-color: var(--s42-spfb-accent-color);
+	box-shadow: var(--s42-spfb-button-box-shadow);
+
+
+	-webkit-transition: background-color 300ms linear 0s, box-shadow 300ms linear 0s;
+	-moz-transition: background-color 300ms linear 0s, box-shadow 300ms linear 0s;
+	transition: background-color 300ms linear 0s, box-shadow 300ms linear 0s;
+}
+
+.s42-stonks-popup__footer__button:hover {
+	background-color: var(--s42-spfb-faded-color);
+	box-shadow: 0 0 0 0 transparent;
+}
+
+.s42-stonks-popup__footer__button--light {
+	background-color: transparent;
+	box-shadow: none;
+
+	-webkit-transition: none;
+	-moz-transition: none;
+	transition: none;
+}
+
+.s42-stonks-popup__footer__button--light:hover {
+	background-color: transparent;
+	box-shadow: none;
+}
+
+.s42-stonks-popup__footer__logo {
+	display: block;
+	position: relative;
+	width: 100%;
+	height: 100%;
+
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+
+	background-image: var(--s42-spfb-logo-url);
+	background-size: contain;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.s42-stonks-popup__footer__message {
+	display: block;
+	position: relative;
+
+	margin: 0;
+	padding: 16px 0 0;
+	box-sizing: border-box;
+	
+	font-size: 12px;
+	line-height: 1em;
+	text-align: center;
+}
+
+.s42-stonks-popup__footer__message a {
+	text-decoration: underline;
+}
+
+.s42-stonks-popup__footer__message a:hover {
+	color: unset;
+}
