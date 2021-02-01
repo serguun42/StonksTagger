@@ -53,6 +53,15 @@
 	color: #CD192E;
 }
 
+.s42-stonks-popup__text-underline {
+	text-decoration: underline;
+
+	border: none;
+	outline: none;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+
 .s42-stonks-popup--flex {
 	display: flex;
 	flex-direction: row;
@@ -300,14 +309,48 @@ stonks.xyz by Moskovskiy × @QQ */
 	box-sizing: border-box;
 	
 	font-size: 12px;
-	line-height: 1em;
+	line-height: 1.2em;
 	text-align: center;
-}
-
-.s42-stonks-popup__footer__message a {
-	text-decoration: underline;
 }
 
 .s42-stonks-popup__footer__message a:hover {
 	color: unset;
 }
+
+.s42-stonks-popup__settings {
+	position: relative;
+	width: 100%;
+
+	margin: 0;
+	padding: 12px 24px;
+	box-sizing: border-box;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
+
+.s42-stonks-popup__settings__row__left {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	position: relative;
+
+	width: calc(100% - 120px);
+
+	font-size: 14px;
+	line-height: 1.2em;
+	text-align: left;
+}
+
+.s42-stonks-popup__settings__row__right {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	position: relative;
+
+	width: 110px;
+
+	text-align: center;
+}
+

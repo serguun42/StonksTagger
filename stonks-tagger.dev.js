@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Stonks Tagger
-// @version     0.0.15-A (2021-02-01)
+// @version     0.0.18-B (2021-02-02)
 // @author      serguun42 – userscript
 // @author      Moskovskiy × QQ – stonks.xyz
 // @description Stonks Tagger – brief info on $cashtags for stonks.xyz in the comments
@@ -25,7 +25,7 @@ const
 	RESOURCES_DOMAIN = "serguun42.ru",
 	BASE_DOMAIN = `https://stonks.xyz/`,
 	API_URL = `https://api.stonks.xyz/api/v1/`,
-	VERSION = "0.0.15";
+	VERSION = "0.0.18";
 
 
 
@@ -70,6 +70,32 @@ const GlobalWaitForElement = iKey => {
 };
 
 /**
+ * @param {String} iMessageText
+ */
+const GlobalShowOsnovaMessage = (iMessageText) => {
+	if (!iMessageText) return;
+	
+	const notification = document.createElement("div");
+		  notification.className = "notify__item notify__item--success";
+		  notification.style.height = "74px";
+		  notification.innerHTML = `<i><svg class="icon icon--ui_success" width="100%" height="100%"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#ui_success"></use></svg></i><p>${iMessageText}</p>`;
+
+	document.getElementById("notify").appendChild(notification);
+
+
+	setTimeout(() => {
+		notification.classList.add("notify__item--shown");
+
+		setTimeout(() => {
+			notification.style.height = "unset";
+			notification.classList.add("notify__item--swiped");
+
+			setTimeout(() => GlobalRemove(notification), 350);
+		}, 4e3);
+	}, 2e2);
+};
+
+/**
  * @callback AnimationStyleSettingFunc
  * @param {Number} iProgress
  */
@@ -108,6 +134,85 @@ const GlobalAnimation = (iDuration, iStyleSettingFunc, iCurveStyle = "ease-in-ou
 
 	requestAnimationFrame(LocalAnimation);
 });
+
+/**
+ * @typedef {Object} AnimationsOptionsType
+ * @property {"block" | "flex" | "etc"} [display]
+ * @property {number} [initialOpacity]
+ */
+/**
+ * @param {HTMLElement} iElem
+ * @param {Number} iDuration
+ * @param {AnimationsOptionsType} [iOptions]
+ * @returns {Promise<String>}
+ */
+const SlideDown = (iElem, iDuration, iOptions) => {
+	if (!iElem || !(iElem instanceof HTMLElement)) return Promise.resolve();
+	if (!iOptions) iOptions = {};
+	if (!iOptions.display) iOptions.display = "block";
+
+	const finalHeight = parseInt(iElem.dataset.targetHeight || getComputedStyle(iElem).height || "0") || (() => {
+		iElem.style.opacity = 0;
+		iElem.style.display = iOptions.display;
+
+		const heightGorFromTweak = parseInt(iElem.dataset.targetHeight || getComputedStyle(iElem).height || "0") || 0;
+		
+		iElem.style.display = "none";
+		iElem.style.opacity = 1;
+		return heightGorFromTweak;
+	})() || 0;
+
+	const paddingTop = parseInt(getComputedStyle(iElem).paddingTop || "0") || 0,
+			paddingBottom = parseInt(getComputedStyle(iElem).paddingTop || "0") || 0;
+
+	iElem.style.display = iOptions.display;
+	iElem.style.overflow = "hidden";
+	iElem.style.height = 0;
+	iElem.style.paddingTop = 0;
+	iElem.style.paddingBottom = 0;
+	iElem.dataset.targetHeight = finalHeight;
+
+	return GlobalAnimation(iDuration, (iProgress) => {
+		iElem.style.height = `${iProgress * finalHeight}px`;
+		iElem.style.paddingTop = `${iProgress * paddingTop}px`;
+		iElem.style.paddingBottom = `${iProgress * paddingBottom}px`;
+	}, "ease-in-out").then(() => {
+		iElem.style.height = `${finalHeight}px`;
+		iElem.style.removeProperty("height");
+		iElem.style.removeProperty("overflow");
+		iElem.style.removeProperty("padding-top");
+		iElem.style.removeProperty("padding-bottom");
+		return Promise.resolve("Done SlideDown");
+	});
+};
+
+/**
+ * @param {HTMLElement} iElem
+ * @param {Number} iDuration
+ * @returns {Promise<String>}
+ */
+const SlideUp = (iElem, iDuration) => {
+	if (!iElem || !(iElem instanceof HTMLElement)) return Promise.resolve();
+
+	const initSize = iElem.clientHeight,
+			paddingTop = parseInt(getComputedStyle(iElem).paddingTop || "0") || 0,
+			paddingBottom = parseInt(getComputedStyle(iElem).paddingTop || "0") || 0;
+
+	iElem.style.overflow = "hidden";
+
+	return GlobalAnimation(iDuration, (iProgress) => {
+		iElem.style.height = `${(1 - iProgress) * initSize}px`;
+		iElem.style.paddingTop = `${(1 - iProgress) * paddingTop}px`;
+		iElem.style.paddingBottom = `${(1 - iProgress) * paddingBottom}px`;
+	}, "ease-in-out").then(() => {
+		iElem.style.display = "none";
+		iElem.style.removeProperty("height");
+		iElem.style.removeProperty("overflow");
+		iElem.style.removeProperty("padding-top");
+		iElem.style.removeProperty("padding-bottom");
+		return Promise.resolve("Done SlideUp");
+	});
+};
 
 /**
  * @param {Number} iNumber
@@ -326,8 +431,10 @@ const GlobalNumberToNiceString = iKarma => {
 const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 	let shown = false,
 		building = false,
-		opacity = 0;
-	
+		opacity = 0,
+		settingsShown = false,
+		settingsAnimating = false;
+
 	/** @type {HTMLElement} */
 	let card = null;
 
@@ -396,6 +503,9 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 		}).then(/** @param {ExtendedStockInfo} iDrawingStock */ (iDrawingStock) => {
 			if (!card) card = GlobalBuildLayout({
 				class: "s42-stonks-popup",
+				tags: {
+					style: "display: none; opacity: 0;"
+				},
 				children: [
 					{
 						class: "s42-stonks-popup__head s42-stonks-popup--flex",
@@ -569,6 +679,7 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 									},
 									{
 										tag: "a",
+										class: "s42-stonks-popup__text-underline",
 										tags: {
 											href: "https://tjournal.ru/u/85142-qq",
 											target: "_blank"
@@ -581,6 +692,7 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 									},
 									{
 										tag: "a",
+										class: "s42-stonks-popup__text-underline",
 										tags: {
 											href: "https://tjournal.ru/u/160854-moskovskiy",
 											target: "_blank"
@@ -593,15 +705,78 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 									},
 									{
 										tag: "a",
+										class: "s42-stonks-popup__text-underline",
 										tags: {
 											href: "https://tjournal.ru/u/99944-serguun42",
 											target: "_blank"
 										},
 										text: "@serguun42"
+									},
+									{
+										tag: "br"
+									},
+									{
+										tag: "span",
+										class: "s42-stonks-popup__text-underline",
+										text: "Настройки скрипта",
+										onclick: (e) => {
+											if (settingsAnimating) return;
+											settingsAnimating = true;
+
+											if (settingsShown) {
+												SlideUp(card.querySelector(".s42-stonks-popup__settings"), 4e2).then(() => {
+													settingsShown = false;
+													settingsAnimating = false;
+													(e.currentTarget || e.target).innerText = "Настройки скрипта";
+												});
+											} else {
+												SlideDown(card.querySelector(".s42-stonks-popup__settings"), 4e2).then(() => {
+													settingsShown = true;
+													settingsAnimating = false;
+													(e.currentTarget || e.target).innerText = "Скрыть настройки";
+												});
+											};
+										}
 									}
 								]
 							}
 						]
+					},
+					{
+						class: "s42-stonks-popup__settings",
+						tags: {
+							style: "display: none;"
+						},
+						child: {
+							class: "s42-stonks-popup__settings__row s42-stonks-popup--flex",
+							children: [
+								{
+									class: "s42-stonks-popup__settings__row__left s42-stonks-popup__text-off",
+									child: {
+										tag: "span",
+										text: "Показывать попап только на кэштегах и не показывать при наведении на пользователей-участников Биржи"
+									}
+								},
+								{
+									class: "s42-stonks-popup__text-underline s42-stonks-popup__settings__row__right",
+									child: {
+										tag: "span",
+										text: localStorage.getItem("s42-stonks-popup-only-on-cahstags") === "enabled" ? "Применено" : "Не применено"
+									},
+									onclick: (e) => {
+										if (localStorage.getItem("s42-stonks-popup-only-on-cahstags") === "enabled") {
+											(e.currentTarget || e.target).querySelector("span").innerText = "Не применено";
+											GlobalShowOsnovaMessage("Попап будет показываться везде, где можно. Перезагрузите страницу.");
+											localStorage.setItem("s42-stonks-popup-only-on-cahstags", "disabled");
+										} else {
+											(e.currentTarget || e.target).querySelector("span").innerText = "Применено";
+											GlobalShowOsnovaMessage("Попап только для кэштегов. Перезагрузите страницу.");
+											localStorage.setItem("s42-stonks-popup-only-on-cahstags", "enabled");
+										};
+									}
+								}
+							]
+						}
 					}
 				]
 			}, document.body, false);
@@ -628,33 +803,32 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 	const LocalShow = (e) => {
 		shown = true;
 		
-		setTimeout(() => {
+		const LocalActualShowing = () => {
 			if (!shown) return false;
-			
-			card.style.display = "block";
-
 
 			if (opacity === 1) return false;
 
 			const startOpacity = opacity;
 
 			card.style.opacity = startOpacity;
-			GlobalAnimation(3e2, (iProgress) => {
+			GlobalAnimation(300, (iProgress) => {
 				opacity = iProgress * (1 - startOpacity);
 				card.style.opacity = iProgress * (1 - startOpacity);
 			}).then(() => {
-				card.style.opacity = 1;
 				opacity = 1;
+				card.style.opacity = 1;
 			});
+
+			card.style.display = "block";
 
 
 			if (opacity !== 0) return false;
 
 			const clientX = e.clientX || e.touches[0].clientX,
-				clientY = e.clientY || e.touches[0].clientY,
-				cardWidth = card.clientWidth,
-				cardHeight = card.clientHeight,
-				topScrolled = window.scrollY;
+				  clientY = e.clientY || e.touches[0].clientY,
+				  cardWidth = card.clientWidth,
+				  cardHeight = card.clientHeight,
+				  topScrolled = window.scrollY;
 
 			let leftPlacing = clientX,
 				topPlacing = clientY - cardHeight;
@@ -677,7 +851,12 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 
 			card.style.left = `${leftPlacing}px`;
 			card.style.top = `${topPlacing + topScrolled}px`;
-		}, 300);
+		};
+
+		if (opacity !== 0)
+			LocalActualShowing();
+		else
+			setTimeout(LocalActualShowing, 300);
 	};
 
 	/**
@@ -700,16 +879,16 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 			if (!shown) {
 				const startOpacity = opacity;
 
-				GlobalAnimation(3e2, (iProgress) => {
+				GlobalAnimation(300, (iProgress) => {
 					if (!shown) {
 						opacity = (1 - iProgress) * startOpacity;
 						card.style.opacity = (1 - iProgress) * startOpacity;
 					};
 				}).then(() => {
 					if (!shown) {
-						card.style.display = "none";
-						card.style.opacity = 0;
 						opacity = 0;
+						card.style.opacity = 0;
+						card.style.display = "none";
 					};
 				});
 			}
@@ -845,54 +1024,56 @@ const GlobalSeeUnseenTags = () => new Promise((resolve, reject) => {
 		return reject(errorCode);
 	});
 }).then(() => {
-	QSA(`.comments__content .comments__item[data-user_id], .comments__pinned .comments__item[data-user_id]`).forEach((commentElem) => {
-		if (!(commentElem.dataset && commentElem.dataset.user_id)) return false;
+	if (localStorage.getItem("s42-stonks-popup-only-on-cahstags") !== "enabled") {
+		QSA(`.comments__content .comments__item[data-user_id], .comments__pinned .comments__item[data-user_id]`).forEach((commentElem) => {
+			if (!(commentElem.dataset && commentElem.dataset.user_id)) return false;
 
-		GlobalPrepareCommentTooltip(commentElem, commentElem.dataset.user_id);
-	});
+			GlobalPrepareCommentTooltip(commentElem, commentElem.dataset.user_id);
+		});
 
-	QSA(`.content-header .content-header-author[href*="/u/"]`).forEach((authorElem) => {
-		if (!(authorElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1])) return false;
+		QSA(`.content-header .content-header-author[href*="/u/"]`).forEach((authorElem) => {
+			if (!(authorElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1])) return false;
 
-		GlobalPrepareAuthorTooltip(authorElem, authorElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1]);
-	});
+			GlobalPrepareAuthorTooltip(authorElem, authorElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1]);
+		});
 
-	QSA(`.table__row .table__cell .subsite[href*="/u/"]`).forEach((ratingElem) => {
-		if (!(ratingElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1])) return false;
+		QSA(`.table__row .table__cell .subsite[href*="/u/"]`).forEach((ratingElem) => {
+			if (!(ratingElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1])) return false;
 
-		GlobalPrepareRatingTooltip(ratingElem, ratingElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1]);
-	});
+			GlobalPrepareRatingTooltip(ratingElem, ratingElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1]);
+		});
 
-	if (window.location.pathname.match(/\/u\/(\d+)/)) {
-		if (!(window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/))) {
-			const profileID = parseInt(window.location.pathname?.match(/\/u\/(\d+)(-)?/)?.[1] || 0) || 0;
+		if (window.location.pathname.match(/\/u\/(\d+)/)) {
+			if (!(window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/))) {
+				const profileID = parseInt(window.location.pathname?.match(/\/u\/(\d+)(-)?/)?.[1] || 0) || 0;
 
-			if (profileID) {
-				const userStock = STOCKS.stocks.find((stock) => stock.platform === SITE_PLATFROM && stock.platform_id === profileID);
+				if (profileID) {
+					const userStock = STOCKS.stocks.find((stock) => stock.platform === SITE_PLATFROM && stock.platform_id === profileID);
 
-				if (userStock) {
-					GlobalWaitForElement(".v-header__actions").then((actions) => {
-						if (actions?.classList?.contains("s42-stonks-tagger-seen")) return false;
-						actions?.classList?.add("s42-stonks-tagger-seen");
+					if (userStock) {
+						GlobalWaitForElement(".v-header__actions").then((actions) => {
+							if (actions?.classList?.contains("s42-stonks-tagger-seen")) return false;
+							actions?.classList?.add("s42-stonks-tagger-seen");
 
 
-						const toggleButton = document.createElement("div");
-							toggleButton.className = "v-button v-button--default v-button--size-default";
-							toggleButton.innerHTML = `<div class="v-button__icon"><svg height="20" width="48" class="icon icon--ui_sidebar_rating"><use xlink:href="#ui_sidebar_rating"></use></svg></div>`;
+							const toggleButton = document.createElement("div");
+								toggleButton.className = "v-button v-button--default v-button--size-default";
+								toggleButton.innerHTML = `<div class="v-button__icon"><svg height="20" width="48" class="icon icon--ui_sidebar_rating"><use xlink:href="#ui_sidebar_rating"></use></svg></div>`;
 
-						const userHeaderActionsButtons = QSA(".v-header__actions > .v-button, .v-header__actions > .v-subscribe-button");
+							const userHeaderActionsButtons = QSA(".v-header__actions > .v-button, .v-header__actions > .v-subscribe-button");
 
-						if (userHeaderActionsButtons[userHeaderActionsButtons.length - 1]) {
-							userHeaderActionsButtons[userHeaderActionsButtons.length - 1].after(toggleButton);
-							GlobalAddTickerTooltip(toggleButton, userStock);
-						};
-					});
+							if (userHeaderActionsButtons[userHeaderActionsButtons.length - 1]) {
+								userHeaderActionsButtons[userHeaderActionsButtons.length - 1].after(toggleButton);
+								GlobalAddTickerTooltip(toggleButton, userStock);
+							};
+						});
+					};
 				};
 			};
 		};
 	};
 
-	QSA(`.comments__item__text > p`).forEach((paragraph) => {
+	QSA(`.comments__item__text > p, .l-entry__content .l-island-a p`).forEach((paragraph) => {
 		if (paragraph?.classList?.contains("s42-stonks-tagger-seen")) return false;
 		paragraph?.classList?.add("s42-stonks-tagger-seen");
 
