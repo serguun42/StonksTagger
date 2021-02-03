@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Stonks Tagger
-// @version     0.0.18-B (2021-02-02)
+// @version     1.0.0 (2021-02-03)
 // @author      serguun42 – userscript
 // @author      Moskovskiy × QQ – stonks.xyz
 // @description Stonks Tagger – brief info on $cashtags for stonks.xyz in the comments
@@ -25,7 +25,7 @@ const
 	RESOURCES_DOMAIN = "serguun42.ru",
 	BASE_DOMAIN = `https://stonks.xyz/`,
 	API_URL = `https://api.stonks.xyz/api/v1/`,
-	VERSION = "0.0.18";
+	VERSION = "1.0.0";
 
 
 
