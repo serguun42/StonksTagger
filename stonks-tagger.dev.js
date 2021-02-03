@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Stonks Tagger
-// @version     1.0.0 (2021-02-03)
+// @version     1.0.1-A (2021-02-03)
 // @author      serguun42 – userscript
 // @author      Moskovskiy × QQ – stonks.xyz
 // @description Stonks Tagger – brief info on $cashtags for stonks.xyz in the comments
@@ -25,7 +25,7 @@ const
 	RESOURCES_DOMAIN = "serguun42.ru",
 	BASE_DOMAIN = `https://stonks.xyz/`,
 	API_URL = `https://api.stonks.xyz/api/v1/`,
-	VERSION = "1.0.0";
+	VERSION = "1.0.1";
 
 
 
@@ -747,36 +747,68 @@ const GlobalAddTickerTooltip = (iParentElem, iStock) => {
 						tags: {
 							style: "display: none;"
 						},
-						child: {
-							class: "s42-stonks-popup__settings__row s42-stonks-popup--flex",
-							children: [
-								{
-									class: "s42-stonks-popup__settings__row__left s42-stonks-popup__text-off",
-									child: {
-										tag: "span",
-										text: "Показывать попап только на кэштегах и не показывать при наведении на пользователей-участников Биржи"
-									}
-								},
-								{
-									class: "s42-stonks-popup__text-underline s42-stonks-popup__settings__row__right",
-									child: {
-										tag: "span",
-										text: localStorage.getItem("s42-stonks-popup-only-on-cahstags") === "enabled" ? "Применено" : "Не применено"
+						children: [
+							{
+								class: "s42-stonks-popup__settings__row s42-stonks-popup--flex",
+								children: [
+									{
+										class: "s42-stonks-popup__settings__row__left s42-stonks-popup__text-off",
+										child: {
+											tag: "span",
+											text: "Показывать попап только на кэштегах и не показывать при наведении на пользователей-участников Биржи"
+										}
 									},
-									onclick: (e) => {
-										if (localStorage.getItem("s42-stonks-popup-only-on-cahstags") === "enabled") {
-											(e.currentTarget || e.target).querySelector("span").innerText = "Не применено";
-											GlobalShowOsnovaMessage("Попап будет показываться везде, где можно. Перезагрузите страницу.");
-											localStorage.setItem("s42-stonks-popup-only-on-cahstags", "disabled");
-										} else {
-											(e.currentTarget || e.target).querySelector("span").innerText = "Применено";
-											GlobalShowOsnovaMessage("Попап только для кэштегов. Перезагрузите страницу.");
-											localStorage.setItem("s42-stonks-popup-only-on-cahstags", "enabled");
-										};
+									{
+										class: "s42-stonks-popup__text-underline s42-stonks-popup__settings__row__right",
+										child: {
+											tag: "span",
+											text: localStorage.getItem("s42-stonks-popup-only-on-cahstags") === "enabled" ? "Применено" : "Не применено"
+										},
+										onclick: (e) => {
+											if (localStorage.getItem("s42-stonks-popup-only-on-cahstags") === "enabled") {
+												(e.currentTarget || e.target).querySelector("span").innerText = "Не применено";
+												GlobalShowOsnovaMessage("Попап будет показываться везде, где можно. Перезагрузите страницу.");
+												localStorage.setItem("s42-stonks-popup-only-on-cahstags", "disabled");
+											} else {
+												(e.currentTarget || e.target).querySelector("span").innerText = "Применено";
+												GlobalShowOsnovaMessage("Попап только для кэштегов. Перезагрузите страницу.");
+												localStorage.setItem("s42-stonks-popup-only-on-cahstags", "enabled");
+											};
+										}
 									}
-								}
-							]
-						}
+								]
+							},
+							{
+								class: "s42-stonks-popup__settings__row s42-stonks-popup--flex",
+								children: [
+									{
+										class: "s42-stonks-popup__settings__row__left s42-stonks-popup__text-off",
+										child: {
+											tag: "span",
+											text: "Скрывать попап в профилях пользователей-участников Биржи"
+										}
+									},
+									{
+										class: "s42-stonks-popup__text-underline s42-stonks-popup__settings__row__right",
+										child: {
+											tag: "span",
+											text: localStorage.getItem("s42-stonks-popup-hide-in-user-profile") === "enabled" ? "Применено" : "Не применено"
+										},
+										onclick: (e) => {
+											if (localStorage.getItem("s42-stonks-popup-hide-in-user-profile") === "enabled") {
+												(e.currentTarget || e.target).querySelector("span").innerText = "Не применено";
+												GlobalShowOsnovaMessage("Попап не будет показываться в шапке профилей. Перезагрузите страницу.");
+												localStorage.setItem("s42-stonks-popup-hide-in-user-profile", "disabled");
+											} else {
+												(e.currentTarget || e.target).querySelector("span").innerText = "Применено";
+												GlobalShowOsnovaMessage("Попап будет показываться в шапке профилей. Перезагрузите страницу.");
+												localStorage.setItem("s42-stonks-popup-hide-in-user-profile", "enabled");
+											};
+										}
+									}
+								]
+							}
+						]
 					}
 				]
 			}, document.body, false);
@@ -1042,7 +1074,10 @@ const GlobalSeeUnseenTags = () => new Promise((resolve, reject) => {
 
 			GlobalPrepareRatingTooltip(ratingElem, ratingElem.getAttribute("href")?.match(/\/u\/(\d+)/)?.[1]);
 		});
+	};
 
+
+	if (localStorage.getItem("s42-stonks-popup-hide-in-user-profile") !== "enabled") {
 		if (window.location.pathname.match(/\/u\/(\d+)/)) {
 			if (!(window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/))) {
 				const profileID = parseInt(window.location.pathname?.match(/\/u\/(\d+)(-)?/)?.[1] || 0) || 0;
@@ -1072,6 +1107,7 @@ const GlobalSeeUnseenTags = () => new Promise((resolve, reject) => {
 			};
 		};
 	};
+
 
 	QSA(`.comments__item__text > p, .l-entry__content .l-island-a p`).forEach((paragraph) => {
 		if (paragraph?.classList?.contains("s42-stonks-tagger-seen")) return false;

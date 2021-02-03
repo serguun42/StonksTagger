@@ -330,6 +330,14 @@ stonks.xyz by Moskovskiy × @QQ */
 	user-select: none;
 }
 
+.s42-stonks-popup__settings__row {
+	margin: 0 0 16px;
+}
+
+.s42-stonks-popup__settings__row:last-of-type {
+	margin: 0;
+}
+
 .s42-stonks-popup__settings__row__left {
 	display: flex;
 	flex-direction: column;
@@ -353,4 +361,3 @@ stonks.xyz by Moskovskiy × @QQ */
 
 	text-align: center;
 }
-
