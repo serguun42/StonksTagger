@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Stonks Tagger
-// @version     1.0.1-A (2021-02-03)
+// @version     1.0.2-A (2021-02-06)
 // @author      serguun42 – userscript
 // @author      Moskovskiy × QQ – stonks.xyz
 // @description Stonks Tagger – brief info on $cashtags for stonks.xyz in the comments
@@ -25,7 +25,7 @@ const
 	RESOURCES_DOMAIN = "serguun42.ru",
 	BASE_DOMAIN = `https://stonks.xyz/`,
 	API_URL = `https://api.stonks.xyz/api/v1/`,
-	VERSION = "1.0.1";
+	VERSION = "1.0.2";
 
 
 
@@ -1015,7 +1015,7 @@ const GlobalPrepareRatingTooltip = (iRatingElem, iUserID) => {
 
 
 	if (ratingUserName.innerText) {
-		ratingUserName.innerText = `${ratingUserName.innerText} ($${userStock.ticker.toUpperCase()})`;
+		ratingUserName.innerHTML = `<strong ${ratingUserName.getAttributeNames().filter((attribute) => attribute.search(/data/) === 0).join(" ")}>${ratingUserName.innerText} ($${userStock.ticker.toUpperCase()})</strong>`;
 	};
 
 
